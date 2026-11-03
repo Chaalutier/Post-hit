@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffcf3f">
+<title>Post hit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffcf3f; --card: #fffdf7; --ink: #1b1726; --muted: #6a6474; --line: #ece5d6;
+    --edge: #1b1726; --accent: #ff4f6d; --accent-ink: #fff; --chip: #f4eee1;
+    --real: #2a7fff; --fic: #9b4dff; --back: #ff4f6d; --logo: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1b1530; --card: #2a2342; --ink: #f2eefb; --muted: #a9a1bd; --line: #3a3257;
+      --edge: #0b0816; --chip: #372e55; --logo: #ffcf3f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    background-image: radial-gradient(#0000000f 2px, transparent 2px); background-size: 22px 22px;
+    font: 16px/1.5 "Fredoka", system-ui, sans-serif; font-weight: 500;
+    padding: 16px 16px calc(104px + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+  main { max-width: 520px; margin: 0 auto; }
+
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .logo { margin: 0; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+  .logo span { display: inline-block; animation: hop 2.8s ease-in-out infinite; animation-delay: calc(var(--i) * 90ms); text-shadow: 3px 3px 0 var(--edge); color: var(--logo); -webkit-text-stroke: 2px var(--edge); }
+  .logo .sp { width: .3em; }
+  .count { font-weight: 700; font-size: .85rem; background: var(--card); border: 2px solid var(--edge); border-radius: 999px; padding: 4px 10px; box-shadow: 2px 2px 0 var(--edge); }
+  .count.bump { animation: bump .4s ease; }
+
+  .modes { display: flex; background: var(--card); border: 3px solid var(--edge); border-radius: 16px; padding: 4px; gap: 4px; box-shadow: 4px 4px 0 var(--edge); }
+  .modes label { flex: 1; text-align: center; }
+  .modes input { position: absolute; opacity: 0; }
+  .modes span { display: block; padding: 9px 4px; border-radius: 11px; font-weight: 600; cursor: pointer; transition: background .2s, color .2s, transform .15s; }
+  .modes span:active { transform: scale(.94); }
+  .modes input:checked + span { background: var(--ink); color: var(--card); }
+  .modes input:focus-visible + span { outline: 3px solid var(--accent); }
+
+  .stage { perspective: 1200px; margin-top: 20px; }
+  .card { background: var(--card); border: 3px solid var(--edge); border-radius: 24px; overflow: hidden; box-shadow: 6px 6px 0 var(--edge); transform-origin: center; }
+  .card.deal { animation: deal .7s cubic-bezier(.2, 1.4, .4, 1) both; }
+  .card.leave { animation: leave .3s ease-in both; }
+  .frame { position: relative; }
+  .photo { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: top; display: block; background: var(--chip); border-bottom: 3px solid var(--edge); }
+  .tag {
+    position: absolute; left: 14px; top: 14px; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+    color: #fff; background: var(--real); border: 2px solid var(--edge); border-radius: 10px; padding: 4px 10px;
+    box-shadow: 2px 2px 0 var(--edge); transform: rotate(-4deg); animation: stamp .5s .45s cubic-bezier(.3, 1.6, .5, 1) both;
+  }
+  .tag.fictif { background: var(--fic); }
+  .body { padding: 16px 18px 20px; }
+  h2 { font-size: 1.9rem; line-height: 1.1; margin: 0 0 4px; font-weight: 700; }
+  .desc { color: var(--muted); margin: 0 0 12px; }
+  .extract { margin: 0 0 16px; font-weight: 400; }
+  dl { margin: 0; display: grid; gap: 10px; }
+  dl div { border-top: 2px dashed var(--line); padding-top: 10px; animation: rise .45s calc(.5s + var(--i) * 70ms) ease-out both; }
+  dt { font-size: .8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  dd { margin: 2px 0 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .chips span { background: var(--chip); border: 2px solid var(--edge); border-radius: 10px; padding: 1px 9px; font-size: .9rem; }
+  .more { display: inline-block; margin-top: 18px; color: var(--ink); font-weight: 700; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 4px; }
+
+  .back {
+    aspect-ratio: 4 / 5.6; display: grid; place-items: center; gap: 0; align-content: center;
+    background: var(--back) repeating-linear-gradient(45deg, #ffffff22 0 12px, transparent 12px 24px);
+    border: 3px solid var(--edge); border-radius: 24px; box-shadow: 6px 6px 0 var(--edge); color: #fff;
+    animation: shuffle 1.1s ease-in-out infinite;
+  }
+  .back b { font-size: 7rem; line-height: 1; font-weight: 700; text-shadow: 5px 5px 0 var(--edge); -webkit-text-stroke: 3px var(--edge); }
+  .back p { margin: 8px 0 0; font-weight: 600; text-shadow: 2px 2px 0 var(--edge); }
+  .back.error { animation: shake .5s ease; }
+
+  .reroll {
+    position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
+    max-width: 488px; margin: 0 auto; padding: 14px; border: 3px solid var(--edge); border-radius: 18px;
+    background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 700; font-size: 1.25rem;
+    box-shadow: 0 6px 0 var(--edge); cursor: pointer; transition: transform .08s, box-shadow .08s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .reroll:active:not(:disabled) { transform: translateY(5px); box-shadow: 0 1px 0 var(--edge); }
+  .reroll:disabled { filter: saturate(.6); cursor: wait; }
+  .dice { display: inline-block; font-size: 1.5rem; }
+  .reroll:disabled .dice { animation: roll .6s linear infinite; }
+
+  @keyframes hop { 0%, 70%, 100% { transform: none; } 80% { transform: translateY(-6px) rotate(-4deg); } 90% { transform: translateY(1px); } }
+  @keyframes bump { 50% { transform: scale(1.25) rotate(-6deg); } }
+  @keyframes deal { from { transform: translateY(40px) rotateY(-90deg) scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes leave { to { transform: translateX(120%) rotate(18deg); opacity: 0; } }
+  @keyframes stamp { from { transform: scale(2.4) rotate(-14deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
+  @keyframes rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes shuffle { 0%, 100% { transform: rotate(-3deg) translateX(-6px); } 50% { transform: rotate(3deg) translateX(6px) scale(1.02); } }
+  @keyframes shake { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+  @keyframes roll { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+  }
+  @media (min-width: 700px) { body { padding-top: 40px; } .logo { font-size: 2.6rem; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 class="logo" aria-label="Post hit"><span style="--i:0">P</span><span style="--i:1">o</span><span style="--i:2">s</span><span style="--i:3">t</span><span class="sp"></span><span style="--i:4">h</span><span style="--i:5">i</span><span style="--i:6">t</span></h1>
+    <span class="count" id="count" aria-live="polite">Tirage 0</span>
+  </header>
+  <div class="modes" role="radiogroup" aria-label="Type de personnalité">
+    <label><input type="radio" name="mode" value="tout" checked><span>Les deux</span></label>
+    <label><input type="radio" name="mode" value="reel"><span>Réelle</span></label>
+    <label><input type="radio" name="mode" value="fictif"><span>Fictive</span></label>
+  </div>
+  <section class="stage" id="out" aria-live="polite"></section>
+</main>
+<button class="reroll" id="reroll"><span class="dice" aria-hidden="true">🎲</span> Relancer</button>
+
+<script>
+const LANG = 'fr,en';
+const out = document.getElementById('out');
+const btn = document.getElementById('reroll');
+let pool;
+
+const el = (tag, cls, text) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+};
+const getJSON = async url => {
+  const r = await fetch(url, { signal: AbortSignal.timeout(10000) }); // Wikidata bloque parfois sans répondre
+  if (!r.ok) throw new Error(r.status + ' ' + url);
+  return r.json();
+};
+const sparql = q => getJSON('https://query.wikidata.org/sparql?format=json&query=' + encodeURIComponent(q))
+  .then(d => d.results.bindings);
+const summary = (lang, title) => title
+  ? getJSON(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`).catch(() => null)
+  : null;
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+async function load(id, kind) {
+  const props = 'P21 P569 P570 P19 P27 P106 P54 P166 P1080 P170 P2563 P175 P4584 P31 P18'.split(' ').map(p => 'wdt:' + p).join(' ');
+  const [ent, facts, works] = await Promise.all([
+    getJSON(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${id}&props=labels|descriptions|sitelinks&languages=fr|en&sitefilter=frwiki|enwiki&format=json&origin=*`),
+    sparql(`SELECT ?prop ?v ?vLabel WHERE {
+      { VALUES ?prop { ${props} } wd:${id} ?prop ?v . }
+      UNION { wd:${id} p:P2048/psn:P2048/wikibase:quantityAmount ?v . BIND(wdt:P2048 AS ?prop) }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "${LANG}". } }`),
+    sparql(`SELECT DISTINCT ?w ?wLabel ?s WHERE {
+      { ?w wdt:P161|wdt:P57|wdt:P50|wdt:P175|wdt:P86 wd:${id} } UNION { wd:${id} wdt:P800|wdt:P1441 ?w }
+      ?w wikibase:sitelinks ?s .
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "${LANG}". } } ORDER BY DESC(?s) LIMIT 8`),
+  ]);
+  const e = ent.entities[id];
+  const [fr, en] = await Promise.all([summary('fr', e.sitelinks.frwiki?.title), summary('en', e.sitelinks.enwiki?.title)]);
+
+  const f = {};
+  for (const b of facts) {
+    const k = b.prop.value.split('/').pop();
+    const v = b.vLabel?.value ?? b.v.value;
+    (f[k] ??= []).includes(v) || f[k].push(v);
+  }
+  const p18 = f.P18 && f.P18[0].replace('http:', 'https:') + '?width=700';
+  return {
+    id, f,
+    name: e.labels.fr?.value || e.labels.en?.value || fr?.title || en?.title,
+    desc: e.descriptions.fr?.value || e.descriptions.en?.value || '',
+    extract: fr?.extract || '',
+    url: fr?.content_urls?.mobile.page || en?.content_urls?.mobile.page,
+    works: [...new Set(works.map(w => w.wLabel.value))].filter(l => !/^Q\d+$/.test(l)),
+    // Réel : le portrait Wikidata ; fictif : l'image de l'article (affiche, dessin) est plus parlante que P18 (souvent un cosplay)
+    img: kind === 'reel' ? p18 || fr?.thumbnail?.source || en?.thumbnail?.source
+                : en?.originalimage?.source || fr?.originalimage?.source || p18,
+  };
+}
+
+const fmtDate = s => {
+  const d = new Date(s);
+  return isNaN(d) ? null : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+};
+const age = (birth, death) => {
+  const b = new Date(birth), d = death ? new Date(death) : new Date();
+  return d.getUTCFullYear() - b.getUTCFullYear() - (d < new Date(Date.UTC(d.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate())) ? 1 : 0);
+};
+const cap = (list, n) => list.length > n ? [...list.slice(0, n), `+${list.length - n}`] : list;
+
+function render(p, kind) {
+  const f = p.f, rows = [];
+  const row = (label, value) => value && value.length && rows.push([label, value]);
+  if (kind === 'reel') {
+    const born = f.P569 && fmtDate(f.P569[0]), died = f.P570 && fmtDate(f.P570[0]);
+    if (born) row('Naissance', `${born}${f.P19 ? ' · ' + f.P19[0] : ''}${died ? '' : ` (${age(f.P569[0])} ans)`}`);
+    if (died) row('Décès', `${died} (à ${age(f.P569[0], f.P570[0])} ans)`);
+    if (f.P2048) row('Taille', (+f.P2048[0]).toFixed(2).replace('.', ',') + ' m');
+    row('Nationalité', f.P27);
+    // Wikidata donne « acteur ou actrice » : on garde la forme qui correspond au genre
+    const fem = f.P21?.[0] === 'féminin';
+    const jobs = (f.P106 || []).map(j => j.replace(/(\S+) ou (\S+)/, (_, m, w) => fem ? w : m));
+    row('Métiers', cap([...new Set(jobs)], 5));
+    row('Équipes', cap(f.P54 || [], 6));
+    row('Œuvres connues', p.works);
+    row('Distinctions', cap(f.P166 || [], 5));
+  } else {
+    row('Univers', f.P1080);
+    row('Créé par', f.P170);
+    row('Pouvoirs et capacités', cap(f.P2563 || [], 8));
+    row('Apparaît dans', p.works);
+    row('Première apparition', f.P4584);
+    row('Interprété par', cap(f.P175 || [], 6));
+    row('Nature', f.P31);
+  }
+
+  const card = el('article', 'card deal');
+  const frame = el('div', 'frame');
+  frame.append(p.imgEl, el('span', 'tag ' + kind, kind === 'reel' ? 'Personnalité réelle' : 'Personnage fictif'));
+  const body = el('div', 'body');
+  body.append(el('h2', null, p.name), el('p', 'desc', p.desc));
+  if (p.extract) body.append(el('p', 'extract', p.extract));
+  const dl = el('dl');
+  rows.forEach(([label, value], i) => {
+    const d = el('div'), dd = el('dd');
+    d.style.setProperty('--i', i);
+    if (Array.isArray(value)) {
+      const chips = el('div', 'chips');
+      value.forEach(v => chips.append(el('span', null, v)));
+      dd.append(chips);
+    } else dd.textContent = value;
+    d.append(el('dt', null, label), dd);
+    dl.append(d);
+  });
+  body.append(dl);
+  if (p.url) {
+    const a = el('a', 'more', 'Lire sur Wikipédia →');
+    a.href = p.url; a.target = '_blank'; a.rel = 'noopener';
+    body.append(a);
+  }
+  card.append(frame, body);
+  out.replaceChildren(card);
+}
+
+// Dos de carte « ? » pendant le tirage, et pour les erreurs
+const back = (text, error) => {
+  const b = el('div', 'back' + (error ? ' error' : ''));
+  b.append(el('b', null, '?'), el('p', null, text));
+  return b;
+};
+// On attend que la photo soit chargée pour que la carte se retourne avec l'image
+const preload = src => new Promise(ok => {
+  const img = el('img', 'photo');
+  img.referrerPolicy = 'no-referrer';
+  img.onload = () => ok(img);
+  img.onerror = () => ok(null);
+  setTimeout(() => ok(img), 6000);
+  img.src = src;
+});
+const count = document.getElementById('count');
+let draws = 0;
+
+async function roll() {
+  if (btn.disabled) return; // un tirage à la fois
+  btn.disabled = true;
+  const old = out.querySelector('.card');
+  if (old && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    old.classList.add('leave');
+    await new Promise(r => setTimeout(r, 300));
+  }
+  out.replaceChildren(back('On mélange les cartes…'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  try {
+    pool ??= await getJSON('pool.json');
+    const mode = document.querySelector('[name=mode]:checked').value;
+    // Sans photo, on retire quelqu'un d'autre (rare côté réel : le pool exige déjà une image)
+    for (let i = 0; i < 6; i++) {
+      const kind = mode === 'tout' ? pick(['reel', 'fictif']) : mode;
+      const p = await load(pick(pool[kind]), kind).catch(err => (console.warn(err), {}));
+      p.imgEl = p.img && p.name && await preload(p.img);
+      if (p.imgEl) {
+        p.imgEl.alt = p.name;
+        render(p, kind);
+        count.textContent = 'Tirage ' + ++draws;
+        count.classList.remove('bump'); void count.offsetWidth; count.classList.add('bump');
+        return;
+      }
+    }
+    throw new Error('aucune photo trouvée');
+  } catch (err) {
+    console.error(err);
+    out.replaceChildren(back('Wikipédia ne répond pas. Relancez !', true));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+btn.addEventListener('click', roll);
+document.querySelectorAll('[name=mode]').forEach(r => r.addEventListener('change', roll));
+roll();
+</script>
+</body>
+</html>
